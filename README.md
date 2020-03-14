@@ -1,4 +1,4 @@
-# Module dpevents for FreeSWITCH
+# mod_dpevents - FreeSWITCH module for events bindings from dialplan
 
 Implements dialplan application **bind_event**.
 
