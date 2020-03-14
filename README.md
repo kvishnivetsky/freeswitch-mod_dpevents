@@ -6,7 +6,7 @@ Usage for **fs_cli**:
 
 `originate {execute_on_originate='bind_event CHANNEL_HANGUP_COMPLETE log info TEST 1'}user/1000 &echo`
 
-# Usage
+## Usage examples
 
 Usage for **XML dialplan**:
 
@@ -14,7 +14,7 @@ Usage for **XML dialplan**:
 
 This will cause FreeSWITCH execute **log info TEST 1** when channel dies.
 
-# Building
+## Build as a part of FreeSWITCH tree
 
 Module is belt as part of FreeSWITCH source tree.
 
@@ -22,7 +22,7 @@ To add **mod_dpevents** to build process follow next steps in FreeSWITCH source 
 
 + `git branch devel-mod_dpevents`
 + `git checkout devel-mod_dpevents`
-+ `git submodule add --name mod_dpevents https://github.com/kvishnivetsky/freeswitch-mod_dpevents.git src/mod/applications/mod_dpevents`
++ `git submodule add -- https://github.com/kvishnivetsky/freeswitch-mod_dpevents.git src/mod/applications/mod_dpevents`
 + edit your `configure.ac` and add to `AC_CONFIG_FILES` section `src/mod/applications/mod_dpevents/Makefile`
 + edit your `modules.conf` and add `applications/mod_dpevents`
 + build FreeSWITCH as usual: `./bootstrap.sh` and so on....
