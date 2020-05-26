@@ -10,7 +10,9 @@ Usage for **fs_cli**:
 
 Usage for **XML dialplan**:
 
-`<action application="bind_event" data="CHANNEL_HANGUP_COMPLETE log info TEST 1"/>`
+`<action application="bind_event_app" data="CHANNEL_HANGUP_COMPLETE log info TEST 1"/>`
+
+`<action application="bind_event_api" data="CHANNEL_HANGUP_COMPLETE log info TEST 1"/>`
 
 This will cause FreeSWITCH execute **log info TEST 1** when channel dies.
 
