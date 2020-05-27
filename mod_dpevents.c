@@ -133,13 +133,19 @@ static void event_handler(switch_event_t *event)
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
-						switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+						if (l->app_arg)
+							switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+						else
+							switch_api_execute(l->app, NULL, NULL, &stream);
 						if (globals.debug) {
 							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "API returned: %s\n", (char *)stream.data);
 						}
 						free(stream.data);
 					} else {
-						switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+						if (l->app_arg)
+						    switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+						else
+						    switch_core_session_execute_application(l->session, l->app, NULL);
 					}
 				}
 			} else {
@@ -150,13 +156,19 @@ static void event_handler(switch_event_t *event)
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
-						switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+						if (l->app_arg)
+						    switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+						else
+						    switch_api_execute(l->app, NULL, NULL, &stream);
 						if (globals.debug) {
 							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "API returned: %s\n", (char *)stream.data);
 						}
 						free(stream.data);
 					} else {
-						switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+						if (l->app_arg)
+							switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+						else
+							switch_core_session_execute_application(l->session, l->app, NULL);
 					}
 				}
 			}
