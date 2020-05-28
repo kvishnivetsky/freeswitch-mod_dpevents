@@ -16,6 +16,14 @@ Usage for **XML dialplan**:
 
 This will cause FreeSWITCH execute **log info TEST 1** when channel dies.
 
+## Adding channel variables to binding
+
+`^{channel-variable-name}` will be expanded to channel-variable-name value when binded application/api will be executed
+
+## Adding event header to binding
+
+`!{event-header-name}` will be expanded to event-header-name value when binded application/api will be executed
+
 ## Build as a part of FreeSWITCH tree
 
 Module is belt as part of FreeSWITCH source tree.
