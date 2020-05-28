@@ -87,6 +87,8 @@ static void remove_listener(listener_t *listener)
 	switch_mutex_unlock(globals.listener_mutex);
 }
 
+#define ARGS_EXPAND switch_event_expand_headers(event, switch_string_replace(switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^{", "${")), "!{", "${"))
+
 static void event_handler(switch_event_t *event)
 {
 	listener_t *l, *lp = NULL;
@@ -128,13 +130,13 @@ static void event_handler(switch_event_t *event)
 			if (!strcmp(event_name, "CUSTOM")) {
 				if ( (!strcmp(event_uuid, switch_core_session_get_uuid(l->session)))&&(!strcmp(event_name, l->event_name))&&(!strcmp(event_subclass, l->event_subclass)) ) {
 					if (globals.debug) {
-						switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Execute %s(%s)\n", l->app, switch_string_replace(l->app_arg, "^", "$"));
+						switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Execute %s(%s)\n", l->app, ARGS_EXPAND);
 					}
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
 						if (l->app_arg)
-							switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+							switch_api_execute(l->app, ARGS_EXPAND, NULL, &stream);
 						else
 							switch_api_execute(l->app, NULL, NULL, &stream);
 						if (globals.debug) {
@@ -143,7 +145,7 @@ static void event_handler(switch_event_t *event)
 						free(stream.data);
 					} else {
 						if (l->app_arg)
-						    switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+						    switch_core_session_execute_application(l->session, l->app, ARGS_EXPAND);
 						else
 						    switch_core_session_execute_application(l->session, l->app, NULL);
 					}
@@ -151,13 +153,13 @@ static void event_handler(switch_event_t *event)
 			} else {
 				if ( (!strcmp(event_uuid, switch_core_session_get_uuid(l->session)))&&(!strcmp(event_name, l->event_name))) {
 					if (globals.debug) {
-						switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Execute %s(%s)\n", l->app, switch_string_replace(l->app_arg, "^", "$"));
+						switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "Execute %s(%s)\n", l->app, ARGS_EXPAND);
 					}
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
 						if (l->app_arg)
-						    switch_api_execute(l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")), NULL, &stream);
+						    switch_api_execute(l->app, ARGS_EXPAND, NULL, &stream);
 						else
 						    switch_api_execute(l->app, NULL, NULL, &stream);
 						if (globals.debug) {
@@ -166,7 +168,7 @@ static void event_handler(switch_event_t *event)
 						free(stream.data);
 					} else {
 						if (l->app_arg)
-							switch_core_session_execute_application(l->session, l->app, switch_channel_expand_variables(switch_core_session_get_channel(l->session), switch_string_replace(l->app_arg, "^", "$")));
+							switch_core_session_execute_application(l->session, l->app, ARGS_EXPAND);
 						else
 							switch_core_session_execute_application(l->session, l->app, NULL);
 					}
