@@ -47,6 +47,7 @@ struct listener {
 	switch_core_session_t *session;
 	struct listener *next;
 	int is_api;
+	int is_async;
 };
 
 typedef struct listener listener_t;
@@ -135,19 +136,16 @@ static void event_handler(switch_event_t *event)
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
-						if (l->app_arg)
-							switch_api_execute(l->app, ARGS_EXPAND, NULL, &stream);
-						else
-							switch_api_execute(l->app, NULL, NULL, &stream);
+						switch_api_execute(l->app, l->app_arg?(ARGS_EXPAND):NULL, NULL, &stream);
 						if (globals.debug) {
 							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "API returned: %s\n", (char *)stream.data);
 						}
 						free(stream.data);
 					} else {
-						if (l->app_arg)
-						    switch_core_session_execute_application(l->session, l->app, ARGS_EXPAND);
+						if (l->is_async)
+							switch_core_session_execute_application_async(l->session, l->app, l->app_arg?(ARGS_EXPAND):NULL);
 						else
-						    switch_core_session_execute_application(l->session, l->app, NULL);
+							switch_core_session_execute_application(l->session, l->app, l->app_arg?(ARGS_EXPAND):NULL);
 					}
 				}
 			} else {
@@ -158,19 +156,16 @@ static void event_handler(switch_event_t *event)
 					if (l->is_api) {
 						switch_stream_handle_t stream = { 0 };
 						SWITCH_STANDARD_STREAM(stream);
-						if (l->app_arg)
-						    switch_api_execute(l->app, ARGS_EXPAND, NULL, &stream);
-						else
-						    switch_api_execute(l->app, NULL, NULL, &stream);
+						switch_api_execute(l->app, l->app_arg?(ARGS_EXPAND):NULL, NULL, &stream);
 						if (globals.debug) {
 							switch_log_printf(SWITCH_CHANNEL_LOG, SWITCH_LOG_DEBUG, "API returned: %s\n", (char *)stream.data);
 						}
 						free(stream.data);
 					} else {
-						if (l->app_arg)
-							switch_core_session_execute_application(l->session, l->app, ARGS_EXPAND);
+						if (l->is_async)
+							switch_core_session_execute_application_async(l->session, l->app, l->app_arg?(ARGS_EXPAND):NULL);
 						else
-							switch_core_session_execute_application(l->session, l->app, NULL);
+							switch_core_session_execute_application(l->session, l->app, l->app_arg?(ARGS_EXPAND):NULL);
 					}
 				}
 			}
@@ -183,13 +178,12 @@ static void event_handler(switch_event_t *event)
 	}
 }
 
-SWITCH_STANDARD_APP(bind_event_app_function)
+void bind_event_app(switch_core_session_t *session, const char * data, int async)
 {
 	char *mydata = NULL;
 	unsigned int argc = 0;
 	char *argv[80] = { 0 };
 	listener_t *listener = NULL;
-//	switch_channel_t *channel = switch_core_session_get_channel(session);
 
 	if (data && (mydata = switch_core_session_strdup(session, data))) {
 		argc = switch_separate_string(mydata, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
@@ -212,6 +206,7 @@ SWITCH_STANDARD_APP(bind_event_app_function)
 
 	listener->session = session;
 	listener->event_name = switch_core_session_strdup(session, argv[0]);
+	listener->is_async = async;
 	if (!strcmp(argv[0], "CUSTOM")) {
 		listener->event_subclass = switch_core_session_strdup(session, argv[1]);
 		listener->app = switch_core_session_strdup(session, argv[2]);
@@ -233,13 +228,22 @@ SWITCH_STANDARD_APP(bind_event_app_function)
 	add_listener(listener);
 }
 
+SWITCH_STANDARD_APP(bind_event_app_async_function)
+{
+    bind_event_app(session, data, 1);
+}
+
+SWITCH_STANDARD_APP(bind_event_app_function)
+{
+    bind_event_app(session, data, 0);
+}
+
 SWITCH_STANDARD_APP(bind_event_api_function)
 {
 	char *mydata = NULL;
 	unsigned int argc = 0;
 	char *argv[80] = { 0 };
 	listener_t *listener = NULL;
-//	switch_channel_t *channel = switch_core_session_get_channel(session);
 
 	if (data && (mydata = switch_core_session_strdup(session, data))) {
 		argc = switch_separate_string(mydata, ' ', argv, (sizeof(argv) / sizeof(argv[0])));
@@ -262,6 +266,7 @@ SWITCH_STANDARD_APP(bind_event_api_function)
 
 	listener->session = session;
 	listener->event_name = switch_core_session_strdup(session, argv[0]);
+	listener->is_async = 0;
 	if (!strcmp(argv[0], "CUSTOM")) {
 		listener->event_subclass = switch_core_session_strdup(session, argv[1]);
 		listener->app = switch_core_session_strdup(session, argv[2]);
@@ -324,6 +329,13 @@ SWITCH_MODULE_LOAD_FUNCTION(mod_dpevents_load)
 		    "Bind event to execute dialplan application",
 		    "bind_event_app",
 		    bind_event_app_function,
+		    "",
+		    SAF_SUPPORT_NOMEDIA | SAF_ZOMBIE_EXEC | SAF_ROUTING_EXEC);
+	SWITCH_ADD_APP(app_interface,
+		    "bind_event_app_async",
+		    "Bind event to execute dialplan application asynchroniusly",
+		    "bind_event_app_async",
+		    bind_event_app_async_function,
 		    "",
 		    SAF_SUPPORT_NOMEDIA | SAF_ZOMBIE_EXEC | SAF_ROUTING_EXEC);
 	SWITCH_ADD_APP(app_interface,
